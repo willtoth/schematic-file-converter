@@ -343,7 +343,7 @@ class EagleXML(object):
 
         for pin in body.pins:
             symbol.pin.append(
-                G.pin(name=self.pinnum2name[(cpt_name, pin.pin_number)],
+                G.pin(name=self.pinnum2name[(cpt_name, pin.pin_number)].replace(' ', ''), #delete space
                       x=self.make_length(pin.p2.x),
                       y=self.make_length(pin.p2.y),
                       length=self.get_pin_length(pin),
