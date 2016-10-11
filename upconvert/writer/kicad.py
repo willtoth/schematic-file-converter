@@ -120,7 +120,7 @@ $EndDescr
         f.write('Text Label %d %d %d 60 ~ 0\n' %
                 (make_length(ann.x), -make_length(ann.y),
                  int(ann.rotation * 1800)))
-        f.write(ann.value.encode('utf-8') + '\n')
+        f.write(ann.value.replace("\n", "").encode('utf-8') + '\n')
 
     def write_instance(self, f, inst):
         """ Write a $Comp component to a kiCAD schematic """
@@ -284,7 +284,11 @@ $EndDescr
                      make_length(shape.x + shape.width),
                      make_length(shape.y - shape.height)))
         elif shape.type == 'label':
-            angle = round(shape._rotation * 1800)
+            angle = 0
+            try:
+                angle = round(shape._rotation * 1800)
+            except:
+                pass
             align = shape.align[0].upper()
             return ('T %d %d %d 20 0 %%(unit)d %%(convert)d %s Normal 0 %s C\n' %
                     (angle, make_length(shape.x), make_length(shape.y),

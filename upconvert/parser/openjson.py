@@ -75,12 +75,12 @@ class JSON(object):
         self.parse_version(read.get('version'))
 
         # layout aspects
-        self.parse_layer_options(read.get('layer_options'))
-        self.parse_trace_segments(read.get('trace_segments'))
-        self.parse_layout_objects(read.get('gen_objs'))
-        self.parse_paths(read.get('paths'))
-        self.parse_pours(read.get('pours'))
-        self.parse_pcb_text(read.get('text'))
+        #self.parse_layer_options(read.get('layer_options'))
+        #self.parse_trace_segments(read.get('trace_segments'))
+        #self.parse_layout_objects(read.get('gen_objs'))
+        #self.parse_paths(read.get('paths'))
+        #self.parse_pours(read.get('pours'))
+        #self.parse_pcb_text(read.get('text'))
 
         return self.design
 
@@ -358,25 +358,27 @@ class JSON(object):
 
     def parse_symbol_body(self, body):
         """ Extract a body of a symbol. """
-        bdy = SBody()
-        for pin in body.get('pins'):
-            parsed_pin = self.parse_pin(pin)
-            bdy.add_pin(parsed_pin)
+        bdy = SBody()   
+        for action_region in body.get('action_regions'):
+            pared_region = self.parse_action_region(action_region)
         for shape in body.get('shapes'):
             parsed_shape = self.parse_shape(shape)
             bdy.add_shape(parsed_shape)
         return bdy
 
-
-    def parse_pin(self, pin):
+    def parse_action_region(self,action_region):
         """ Extract a pin of a body. """
-        pin_number = pin.get('pin_number')
-        p1 = self.parse_point(pin.get('p1'))
-        p2 = self.parse_point(pin.get('p2'))
+        pin_number = action_region.get('ref')
+        p1 = self.parse_point(action_region.get('p1'))
+        p2 = self.parse_point(action_region.get('p2'))
         parsed_pin = Pin(pin_number, p1, p2)
-        if pin.get('label') is not None:
-            parsed_pin.label = self.parse_label(pin.get('label'))
-        parsed_pin.styles = pin.get('styles') or {}
+        if action_region.get('label') is not None:
+            parsed_pin.label = self.parse_label(action_region.get('label'))
+        parsed_pin.styles = action_region.get('styles') or {}
+        # Get attributes
+        for key, value in action_region.get('attributes', []).items():
+                parsed_pin.add_attribute(key, value)
+
         return parsed_pin
 
     def parse_point(self, point):
@@ -491,7 +493,7 @@ class JSON(object):
         meta.set_updated_timestamp(metadata.get('updated_timestamp'))
         meta.set_design_id(metadata.get('design_id'))
         meta.set_description(metadata.get('description'))
-        meta.set_slug(metadata.get('slug'))
+        meta.set_slug(metadata.get('slug'))            
         for attached_url in metadata.get('attached_urls'):
             meta.add_attached_url(attached_url)
         return meta
@@ -526,15 +528,15 @@ class JSON(object):
         for point in net_point.get('connected_points'):
             npnt.add_connected_point(point)
         # Get the ConnectedComponents
-        for connectedcomponent in net_point.get('connected_components'):
-            conn_comp = self.parse_connected_component(connectedcomponent)
+        for connected_action_region in net_point.get('connected_action_regions'):
+            conn_comp = self.parse_connected_action_region(connected_action_region)
             npnt.add_connected_component(conn_comp)
         return npnt
 
 
-    def parse_connected_component(self, connectedcomponent):
+    def parse_connected_action_region(self, connected_action_region):
         """ Extract a connected component. """
-        instance_id = connectedcomponent.get('instance_id')
-        pin_number = connectedcomponent.get('pin_number')
+        instance_id = connected_action_region.get('instance_id')
+        pin_number = connected_action_region.get('action_region_index')
         return ConnectedComponent(instance_id, pin_number)
 
